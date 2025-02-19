@@ -104,20 +104,19 @@ public class RobotSimulation {
         System.out.println();
     }
 
-    public void printCurrentState() {
-        System.out.println("Position: [" + x + ", " + y + "]");
-        System.out.println("Pen: " + (penDown ? "Down" : "Up"));
-        System.out.println("Facing: " + facing);
+    public String getCurrentState() {
+        return "Position: [" + x + ", " + y + "]\n" +
+               "Pen: " + (penDown ? "Down" : "Up") + "\n" +
+               "Facing: " + facing;
     }
 
-    public void replayHistory() {
-        for (String command : history) {
-            System.out.println("Executing: " + command);
+    public List<String> getAndReplayHistory(boolean print) {
+        if (print) {
+            for (String command : history) {
+                System.out.println("Executing: " + command);
+            }
         }
-    }
-
-    public List<String> getHistory() {
-        return new ArrayList<>(history); // Return a copy to avoid external modification
+        return new ArrayList<>(history); // Return a copy to maintain encapsulation
     }
 
     public boolean isFloorMarked(int x, int y) { 
@@ -126,7 +125,7 @@ public class RobotSimulation {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        RobotSimulation robot = null; // Declare robot outside the loop to initialize later
+        RobotSimulation robot = null;
 
         while (true) {
             System.out.println("Enter command:");
@@ -166,13 +165,13 @@ public class RobotSimulation {
                         robot.printFloor(); 
                         break;
                     case "C": 
-                        robot.printCurrentState(); 
+                        System.out.println(robot.getCurrentState()); 
                         break;
                     case "Q": 
                         System.out.println("Exiting...");
                         System.exit(0);
                     case "H": 
-                        robot.replayHistory(); 
+                        robot.getAndReplayHistory(true); 
                         break;
                     default: 
                         System.out.println("Unknown command"); 
