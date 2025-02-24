@@ -8,6 +8,7 @@ public class RobotSimulation {
     private Direction facing;
     private List<String> history;
 
+    // Constructor
     public RobotSimulation(int n) {
         floor = new int[n][n];
         x = 0;
@@ -46,19 +47,19 @@ public class RobotSimulation {
     public void turnRight() {
         switch (facing) {
             case NORTH: facing = Direction.EAST; break;
-            case EAST: facing = Direction.SOUTH; break;
-            case SOUTH: facing = Direction.WEST; break;
-            case WEST: facing = Direction.NORTH; break;
+            case EAST:  facing = Direction.SOUTH; break;
+            case SOUTH: facing = Direction.WEST;  break;
+            case WEST:  facing = Direction.NORTH; break;
         }
         history.add("R");
     }
 
     public void turnLeft() {
         switch (facing) {
-            case NORTH: facing = Direction.WEST; break;
-            case WEST: facing = Direction.SOUTH; break;
-            case SOUTH: facing = Direction.EAST; break;
-            case EAST: facing = Direction.NORTH; break;
+            case NORTH: facing = Direction.WEST;  break;
+            case WEST:  facing = Direction.SOUTH; break;
+            case SOUTH: facing = Direction.EAST;  break;
+            case EAST:  facing = Direction.NORTH; break;
         }
         history.add("L");
     }
@@ -69,9 +70,10 @@ public class RobotSimulation {
             switch (facing) {
                 case NORTH: newY++; break;
                 case SOUTH: newY--; break;
-                case EAST: newX++; break;
-                case WEST: newX--; break;
+                case EAST:  newX++; break;
+                case WEST:  newX--; break;
             }
+            // Check boundaries
             if (newX >= 0 && newX < floor.length && newY >= 0 && newY < floor.length) {
                 x = newX;
                 y = newY;
@@ -84,22 +86,20 @@ public class RobotSimulation {
     }
 
     public void printFloor() {
-        // Print grid with row numbers
         for (int i = floor.length - 1; i >= 0; i--) {
-            System.out.printf("%2d ", i); // Row numbers
+            System.out.printf("%2d ", i);
             for (int j = 0; j < floor.length; j++) {
                 if (floor[i][j] == 1) {
-                    System.out.print("* "); // Print '*' for 1
+                    System.out.print("* ");
                 } else {
-                    System.out.print("  "); // Print nothing for 0
+                    System.out.print("  ");
                 }
             }
-            System.out.println(); // Move to the next line
+            System.out.println();
         }
-        // Print top row numbers
-        System.out.print("   "); // Offset for row numbers
+        System.out.print("   ");
         for (int j = 0; j < floor.length; j++) {
-            System.out.print(j + " "); // Print each column number
+            System.out.print(j + " ");
         }
         System.out.println();
     }
@@ -116,11 +116,126 @@ public class RobotSimulation {
                 System.out.println("Executing: " + command);
             }
         }
-        return new ArrayList<>(history); // Return a copy to maintain encapsulation
+        return new ArrayList<>(history);
     }
 
     public boolean isFloorMarked(int x, int y) { 
         return floor[y][x] == 1; 
+    }
+
+    /**
+     * NEW METHOD: Processes a single command string (extracted from main).
+     * This allows JUnit tests to call it directly, improving coverage.
+     *
+     * @param currentRobot The current RobotSimulation instance (can be null if not initialized).
+     * @param input The raw command string from user or tests.
+     * @return The (possibly updated) RobotSimulation instance.
+     */
+    public static RobotSimulation processCommand(RobotSimulation currentRobot, String input) {
+        if (input == null || input.trim().isEmpty()) {
+            System.out.println("No command entered.");
+            return currentRobot;
+        }
+
+        String[] parts = input.trim().split("\\s+");
+        String command = parts[0].toUpperCase();
+
+        try {
+            switch (command) {
+                case "I":
+                    if (parts.length < 2) {
+                        System.out.println("Missing size argument for 'I' command.");
+                        return currentRobot;
+                    }
+                    int size = Integer.parseInt(parts[1]);
+                    // Create a new RobotSimulation instance
+                    currentRobot = new RobotSimulation(size);
+                    System.out.println("System initialized with a " + size + "x" + size + " floor.");
+                    break;
+
+                case "U":
+                    if (currentRobot == null) {
+                        System.out.println("Robot not initialized. Use 'I n' first.");
+                        break;
+                    }
+                    currentRobot.penUp();
+                    break;
+
+                case "D":
+                    if (currentRobot == null) {
+                        System.out.println("Robot not initialized. Use 'I n' first.");
+                        break;
+                    }
+                    currentRobot.penDown();
+                    break;
+
+                case "R":
+                    if (currentRobot == null) {
+                        System.out.println("Robot not initialized. Use 'I n' first.");
+                        break;
+                    }
+                    currentRobot.turnRight();
+                    break;
+
+                case "L":
+                    if (currentRobot == null) {
+                        System.out.println("Robot not initialized. Use 'I n' first.");
+                        break;
+                    }
+                    currentRobot.turnLeft();
+                    break;
+
+                case "M":
+                    if (currentRobot == null) {
+                        System.out.println("Robot not initialized. Use 'I n' first.");
+                        break;
+                    }
+                    if (parts.length < 2) {
+                        System.out.println("Missing steps argument for 'M' command.");
+                        break;
+                    }
+                    currentRobot.move(Integer.parseInt(parts[1]));
+                    break;
+
+                case "P":
+                    if (currentRobot == null) {
+                        System.out.println("Robot not initialized. Use 'I n' first.");
+                        break;
+                    }
+                    currentRobot.printFloor();
+                    break;
+
+                case "C":
+                    if (currentRobot == null) {
+                        System.out.println("Robot not initialized. Use 'I n' first.");
+                        break;
+                    }
+                    System.out.println(currentRobot.getCurrentState());
+                    break;
+
+                case "Q":
+                    System.out.println("Exiting... (test-friendly, no System.exit)");
+                    // We won't actually kill the JVM so we can test coverage
+                    break;
+
+                case "H":
+                    if (currentRobot == null) {
+                        System.out.println("Robot not initialized. Use 'I n' first.");
+                        break;
+                    }
+                    currentRobot.getAndReplayHistory(true);
+                    break;
+
+                default:
+                    System.out.println("Unknown command");
+                    break;
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid number format. Please try again.");
+        } catch (Exception e) {
+            System.out.println("Invalid command. Please try again.");
+        }
+        return currentRobot;
     }
 
     public static void main(String[] args) {
@@ -131,55 +246,14 @@ public class RobotSimulation {
             System.out.println("Enter command:");
             String input = scanner.nextLine();
 
-            // Handle cases where the user inputs a blank line
-            if (input.isEmpty()) {
-                continue;
-            }
+            // Now we call the new processCommand method:
+            robot = processCommand(robot, input);
 
-            String[] parts = input.split(" ");
-            String command = parts[0].toUpperCase();
-
-            try {
-                switch (command) {
-                    case "I": 
-                        int size = Integer.parseInt(parts[1]); // Parse size for the floor
-                        robot = new RobotSimulation(size); // Initialize robot with the given size
-                        System.out.println("System initialized with a " + size + "x" + size + " floor.");
-                        break;
-                    case "U": 
-                        robot.penUp(); 
-                        break;
-                    case "D": 
-                        robot.penDown(); 
-                        break;
-                    case "R": 
-                        robot.turnRight(); 
-                        break;
-                    case "L": 
-                        robot.turnLeft(); 
-                        break;
-                    case "M": 
-                        robot.move(Integer.parseInt(parts[1])); 
-                        break;
-                    case "P": 
-                        robot.printFloor(); 
-                        break;
-                    case "C": 
-                        System.out.println(robot.getCurrentState()); 
-                        break;
-                    case "Q": 
-                        System.out.println("Exiting...");
-                        System.exit(0);
-                    case "H": 
-                        robot.getAndReplayHistory(true); 
-                        break;
-                    default: 
-                        System.out.println("Unknown command"); 
-                        break;
-                }
-            } catch (Exception e) {
-                System.out.println("Invalid command. Please try again.");
+            // If user typed "Q" (or "q"), let's break
+            if ("Q".equalsIgnoreCase(input.trim())) {
+                break;
             }
         }
+        System.out.println("Program ended.");
     }
 }

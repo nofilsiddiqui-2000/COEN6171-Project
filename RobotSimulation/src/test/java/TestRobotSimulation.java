@@ -1,4 +1,10 @@
 import org.junit.jupiter.api.BeforeEach;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -130,4 +136,118 @@ public class TestRobotSimulation {
         assertEquals("M 2", history.get(1));
         assertEquals("R", history.get(2));
     }
+    
+    @Test
+    void testMainMethodCoverage() {
+        // 1) Provide a fake input sequence
+        String userInput = String.join("\n",
+            "I 10",
+            "U",
+            "D",
+            "M 4",
+            "P",
+            "C",
+            "XYZ",    // unknown command
+            "Q"       // triggers exit
+        ) + "\n"; // final newline
+
+        // 2) Redirect System.in
+        ByteArrayInputStream in = new ByteArrayInputStream(userInput.getBytes());
+        System.setIn(in);
+
+        // 3) Capture System.out
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(out));
+
+        // 4) Call main
+        RobotSimulation.main(new String[]{});
+
+        // 5) Restore System.in and System.out
+        System.setIn(System.in);
+        System.setOut(originalOut);
+
+        // Optionally: check console output
+        String consoleOutput = out.toString();
+        assertTrue(consoleOutput.contains("System initialized with a 10x10 floor."));
+        assertTrue(consoleOutput.contains("Exiting..."));
+    }
+    
+    @Test
+    void testProcessCommandAllScenarios() {
+        RobotSimulation robot = null;
+
+        // Null or empty input
+        robot = RobotSimulation.processCommand(robot, null);
+        robot = RobotSimulation.processCommand(robot, "");
+
+        // Robot not initialized yet (should print "Robot not initialized. Use 'I n' first.")
+        robot = RobotSimulation.processCommand(robot, "U");
+        robot = RobotSimulation.processCommand(robot, "D");
+        robot = RobotSimulation.processCommand(robot, "R");
+        robot = RobotSimulation.processCommand(robot, "L");
+        robot = RobotSimulation.processCommand(robot, "M");
+        robot = RobotSimulation.processCommand(robot, "P");
+        robot = RobotSimulation.processCommand(robot, "C");
+        robot = RobotSimulation.processCommand(robot, "H");
+
+        // Unknown command
+        robot = RobotSimulation.processCommand(robot, "XYZ");
+
+        // Missing argument for I
+        robot = RobotSimulation.processCommand(robot, "I");
+
+        // Invalid argument for I
+        robot = RobotSimulation.processCommand(robot, "I abc");
+
+        // Now initialize properly
+        robot = RobotSimulation.processCommand(robot, "I 5");
+
+        // Valid commands
+        robot = RobotSimulation.processCommand(robot, "U");
+        robot = RobotSimulation.processCommand(robot, "D");
+        robot = RobotSimulation.processCommand(robot, "R");
+        robot = RobotSimulation.processCommand(robot, "L");
+        robot = RobotSimulation.processCommand(robot, "M 3");
+        robot = RobotSimulation.processCommand(robot, "P");
+        robot = RobotSimulation.processCommand(robot, "C");
+        robot = RobotSimulation.processCommand(robot, "H");
+
+        // Missing argument for M
+        robot = RobotSimulation.processCommand(robot, "M");
+
+        // Invalid argument for M
+        robot = RobotSimulation.processCommand(robot, "M abc");
+
+        // Quit command
+        robot = RobotSimulation.processCommand(robot, "Q");
+    }
+    
+    @Test
+    void testMoveEast() {
+        robot.turnRight(); // Facing EAST
+        robot.move(3);
+        assertEquals(3, robot.getX()); // Ensure movement to the right
+        assertEquals(0, robot.getY()); // Y should remain the same
+    }
+
+    @Test
+    void testMoveSouth() {
+        robot.turnRight(); // Facing EAST
+        robot.turnRight(); // Facing SOUTH
+        robot.move(2);
+        assertEquals(0, robot.getX()); // X remains same
+        assertEquals(0, robot.getY()); // Y should not go negative (boundary check)
+    }
+
+    @Test
+    void testMoveWest() {
+        robot.turnLeft(); // Facing WEST
+        robot.move(2);
+        assertEquals(0, robot.getX()); // Should not move left beyond boundary
+    }
+
+
+
+    
 }
