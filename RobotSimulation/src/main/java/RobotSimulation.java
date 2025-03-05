@@ -65,20 +65,20 @@ public class RobotSimulation {
     }
 
     public void move(int steps) {
-    	if (penDown) {
-    		floor[y][x] = 1;
-    	}
         for (int i = 0; i < steps; i++) {
             int newX = x, newY = y;
             switch (facing) {
                 case NORTH: newY++; break;
                 case SOUTH: newY--; break;
-                case EAST: newX++; break;
-                case WEST: newX--; break;
+                case EAST:  newX++; break;
+                case WEST:  newX--; break;
             }
+            // Check boundaries
             if (newX >= 0 && newX < floor.length && newY >= 0 && newY < floor.length) {
+                x = newX;
+                y = newY;
                 if (penDown) {
-                    floor[newY][newX] = 1;
+                    floor[y][x] = 1;
                 }
             }
         }
