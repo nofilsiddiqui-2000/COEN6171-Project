@@ -10,6 +10,10 @@ public class RobotSimulation {
 
     // Constructor
     public RobotSimulation(int n) {
+        // If you also want to prevent zero/negative at the constructor level:
+        if (n <= 0) {
+            throw new IllegalArgumentException("Floor size must be greater than 0.");
+        }
         floor = new int[n][n];
         x = 0;
         y = 0;
@@ -97,6 +101,7 @@ public class RobotSimulation {
             }
             System.out.println();
         }
+        // Print the column indices at the bottom
         System.out.print("   ");
         for (int j = 0; j < floor.length; j++) {
             System.out.print(j + " ");
@@ -105,9 +110,9 @@ public class RobotSimulation {
     }
 
     public String getCurrentState() {
-        return "Position: [" + x + ", " + y + "]\n" +
-               "Pen: " + (penDown ? "Down" : "Up") + "\n" +
-               "Facing: " + facing;
+        return "Position: [" + x + ", " + y + "]\n"
+               + "Pen: " + (penDown ? "Down" : "Up") + "\n"
+               + "Facing: " + facing;
     }
 
     public List<String> getAndReplayHistory(boolean print) {
@@ -124,7 +129,7 @@ public class RobotSimulation {
     }
 
     /**
-     * NEW METHOD: Processes a single command string (extracted from main).
+     * Processes a single command string (extracted from main).
      * This allows JUnit tests to call it directly, improving coverage.
      *
      * @param currentRobot The current RobotSimulation instance (can be null if not initialized).
@@ -147,8 +152,29 @@ public class RobotSimulation {
                         System.out.println("Missing size argument for 'I' command.");
                         return currentRobot;
                     }
-                    int size = Integer.parseInt(parts[1]);
-                    // Create a new RobotSimulation instance
+                    String sizeArg = parts[1];
+
+                    // If the user explicitly types "0", show "grid size not valid error."
+//                    if ("0".equals(sizeArg)) {
+//                        System.out.println("Grid size is not valid.");
+//                        return currentRobot;
+//                    }
+
+                    // Reject any string that isn't strictly positive with no leading zeros 
+                    // (must start 1-9, followed by zero or more digits).
+//                    if (!sizeArg.matches("[1-9]\\d*")) {
+//                        System.out.println("Invalid format for size. Please try again.");
+//                        return currentRobot;
+//                    }
+
+                    // Now it's safe to parse the integer (>=1, no leading zeros).
+                    int size = Integer.parseInt(sizeArg);
+                    if (size <= 0) {
+                    	System.out.println("Grid size is not valid");
+                    	return currentRobot;
+                    }
+
+                    // Create the new robot simulation
                     currentRobot = new RobotSimulation(size);
                     System.out.println("System initialized with a " + size + "x" + size + " floor.");
                     break;
@@ -213,11 +239,6 @@ public class RobotSimulation {
                     System.out.println(currentRobot.getCurrentState());
                     break;
 
-                case "Q":
-                    System.out.println("Exiting... (test-friendly, no System.exit)");
-                    // We won't actually kill the JVM so we can test coverage
-                    break;
-
                 case "H":
                     if (currentRobot == null) {
                         System.out.println("Robot not initialized. Use 'I n' first.");
@@ -226,15 +247,18 @@ public class RobotSimulation {
                     currentRobot.getAndReplayHistory(true);
                     break;
 
+                case "Q":
+                    System.out.println("Exiting... (test-friendly, no System.exit)");
+                    break;
+
                 default:
                     System.out.println("Unknown command");
                     break;
             }
         } catch (NumberFormatException e) {
             System.out.println("Invalid number format. Please try again.");
-        } catch (Exception e) {
-            System.out.println("Invalid command. Please try again.");
         }
+
         return currentRobot;
     }
 
@@ -246,10 +270,10 @@ public class RobotSimulation {
             System.out.println("Enter command:");
             String input = scanner.nextLine();
 
-            // Now we call the new processCommand method:
+            // Call the new processCommand method:
             robot = processCommand(robot, input);
 
-            // If user typed "Q" (or "q"), let's break
+            // If user typed "Q" (or "q"), break
             if ("Q".equalsIgnoreCase(input.trim())) {
                 break;
             }

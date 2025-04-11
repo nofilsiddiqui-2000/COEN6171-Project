@@ -21,6 +21,29 @@ public class TestRobotSimulation {
     void setUp() {
         robot = new RobotSimulation(10); // 10x10 floor
     }
+    
+    @Test
+    void testInitializeWithZeroSize() {
+        // Capture console output
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outContent));
+
+        RobotSimulation currentRobot = null;
+        // Pass the "I 0" command to processCommand.
+        // By design, the code should print "Grid size not valid error." and not create a robot.
+        currentRobot = RobotSimulation.processCommand(currentRobot, "I 0");
+
+        // Convert captured output to string for inspection
+        String consoleOutput = outContent.toString();
+
+        // Assert that the console output contains the expected message
+        assertTrue(consoleOutput.contains("Grid size is not valid"),
+                   "Expected 'Grid size not valid error' message, but got:\n" + consoleOutput);
+
+        // Clean up: restore original System.out
+        System.setOut(originalOut);
+    }
 
     @Test
     void testInitializeSystem() {
