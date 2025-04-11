@@ -90,6 +90,7 @@ public class RobotSimulation {
     }
 
     public void printFloor() {
+        // Print rows top-down, so we iterate floor.length - 1 down to 0
         for (int i = floor.length - 1; i >= 0; i--) {
             System.out.printf("%2d ", i);
             for (int j = 0; j < floor.length; j++) {
